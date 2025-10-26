@@ -1,13 +1,25 @@
 {
-  "background_color": "#ffffff",
+  "name": "Waza Computer",
+  "short_name": "WazaComp",
   "description": "Aplikasi Manajemen Servis WAZA COMPUTER",
-  "dir": "ltr",
+  "start_url": "/waza-computer/",
   "display": "standalone",
-  "name": "wazacomp.github",
-  "orientation": "any",
-  "scope": "/",
-  "short_name": "wazacomp.github",
-  "start_url": "/",
+  "background_color": "#ffffff",
   "theme_color": "#25d366",
-  "lang": "id"
+  "orientation": "any",
+  "scope": "/waza-computer/",
+  "lang": "id",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512x512.png", 
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }
