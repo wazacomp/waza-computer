@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <title>WAZA COMPUTER - Aplikasi Servis</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#25d366">
+    <meta name="description" content="Aplikasi Manajemen Servis WAZA COMPUTER">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        
+        :root {
+            --primary: #25d366; --secondary: #128C7E;
+            --bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --card-bg: rgba(255,255,255,0.95);
+        }
+        
+        body {
+            background: var(--bg); padding: 15px; min-height: 100vh;
+        }
+        
+        .container { max-width: 100%; margin: 0 auto; }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white; padding: 20px; border-radius: 16px; 
+            margin-bottom: 20px; text-align: center;
+            box-shadow: 0 6px 20px rgba(37,211,102,0.3);
+        }
+        
+        .header h1 { font-size: 22px; margin-bottom: 10px; }
+        .header div { font-size: 13px; margin: 3px 0; }
+        
+        .tabs {
+            display: flex; background: var(--card-bg); 
+            border-radius: 12px; margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .tab {
+            flex: 1; padding: 14px 10px; text-align: center;
+            border: none; background: transparent; color: #666;
+            cursor: pointer; font-size: 13px; font-weight: 600;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        
+        .tab.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        
+        .tab-content { display: block; }
+        .hidden { display: none; }
+        
+        .card {
+            background: var(--card-bg); padding: 20px; 
+            border-radius: 16px; margin-bottom: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .stats {
+            display: grid; grid-template-columns: 1fr 1fr 1fr; 
+            gap: 12px; margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: var(--card-bg); padding: 16px 12px;
+            border-radius: 12px; text-align: center; cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            position: relative; overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: ''; position: absolute; top: 0; left: 0; 
+            right: 0; height: 3px;
+        }
+        
+        .in-progress::before { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+        .completed::before { background: linear-gradient(135deg, #10b981, #34d399); }
+        .taken::before { background: linear-gradient(135deg, #ef4444, #f87171); }
+        
+        .stat-number {
+            font-size: 20px; font-weight: 800; margin: 8px 0;
+        }
+        
+        .in-progress .stat-number { color: #f59e0b; }
+        .completed .stat-number { color: #10b981; }
+        .taken .stat-number { color: #ef4444; }
+        
+        .stat-label {
+            font-size: 11px; color: #6b7280; font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        input, textarea, select {
+            width: 100%; padding: 14px 16px; margin: 8px 0;
+            border: 2px solid #e5e7eb; border-radius: 10px;
+            font-size: 14px; background: rgba(255,255,255,0.9);
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none; border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37,211,102,0.1);
+        }
+        
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat; background-position: right 16px center;
+            background-size: 16px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white; padding: 16px 20px; border: none;
+            border-radius: 12px; width: 100%; font-size: 15px;
+            margin: 15px 0 5px 0; font-weight: 700; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(37,211,102,0.3);
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        
+        button.success { background: linear-gradient(135deg, #10b981, #059669); }
+        button.danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        button.warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        
+        .service-item {
+            padding: 16px; background: var(--card-bg); 
+            border-radius: 12px; margin-bottom: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+        
+        .status-badge {
+            padding: 6px 12px; border-radius: 16px; font-size: 11px;
+            font-weight: 700; text-transform: uppercase;
+        }
+        
+        .status-progress { background: #fef3c7; color: #92400e; }
+        .status-completed { background: #d1fae5; color: #065f46; }
+        .status-taken { background: #fee2e2; color: #991b1b; }
+        
+        .action-buttons {
+            display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 10px 12px; border: none; border-radius: 10px;
+            font-size: 12px; cursor: pointer; flex: 1; min-width: 70px;
+            font-weight: 600; display: flex; align-items: center; 
+            justify-content: center; gap: 4px;
+        }
+        
+        .notification {
+            background: linear-gradient(135deg, #fef3c7, #f59e0b);
+            border: 1px solid #f59e0b; border-radius: 12px;
+            padding: 16px; margin-bottom: 16px; display: flex;
+            align-items: center; gap: 12px;
+        }
+        
+        .invoice-modal {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; background: rgba(0,0,0,0.5);
+            z-index: 1000; align-items: center; justify-content: center;
+            padding: 15px;
+        }
+        
+        .invoice-content {
+            background: white; padding: 20px; border-radius: 16px;
+            width: 100%; max-width: 500px; max-height: 80vh;
+            overflow-y: auto; box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        
+        @media (max-width: 768px) {
+            body { padding: 12px; }
+            .header { padding: 16px; }
+            .header h1 { font-size: 18px; }
+            .tab { padding: 12px 8px; font-size: 12px; }
+            .stats { gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-laptop-code"></i> WAZA COMPUTER</h1>
+            <div><i class="fas fa-map-marker-alt"></i> Jl. Jend. Sudirman Lr. Kasuari Samping Kantor KPU Pal 1</div>
+            <div>Muara Bulian Batanghari Jambi</div>
+            <div><i class="fas fa-phone"></i> 085184266873 / 085769875515</div>
+            <div><i class="fas fa-envelope"></i> wazacomputerbulian@gmail.com</div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('dashboard')">
+                <i class="fas fa-chart-line"></i> Dashboard
+            </div>
+            <div class="tab" onclick="showTab('input')">
+                <i class="fas fa-plus-circle"></i> Input Data
+            </div>
+            <div class="tab" onclick="showTab('data')">
+                <i class="fas fa-list"></i> Data Servis
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard" class="tab-content">
+            <div id="notification-area"></div>
+            <div id="warranty-notification-area"></div>
+
+            <div class="stats">
+                <div class="stat-card in-progress" onclick="showServiceDetails('progress')">
+                    <div class="stat-number" id="count-progress">0</div>
+                    <div class="stat-label">Dalam Pengerjaan</div>
+                </div>
+                <div class="stat-card completed" onclick="showServiceDetails('completed')">
+                    <div class="stat-number" id="count-completed">0</div>
+                    <div class="stat-label">Selesai</div>
+                </div>
+                <div class="stat-card taken" onclick="showServiceDetails('taken')">
+                    <div class="stat-number" id="count-taken">0</div>
+                    <div class="stat-label">Sudah Diambil</div>
+                </div>
+            </div>
+
+            <div id="service-details"></div>
+        </div>
+
+        <!-- Input Data -->
+        <div id="input" class="tab-content hidden">
+            <div class="card">
+                <h3><i class="fas fa-plus-circle"></i> Input Data Servis Baru</h3>
+                <input type="text" id="nama" placeholder="👤 Nama Konsumen" required>
+                <input type="tel" id="telpon" placeholder="📞 No. Telepon" required>
+                <textarea id="alamat" placeholder="🏠 Alamat Lengkap" required></textarea>
+                <input type="text" id="merek" placeholder="💻 Merek Laptop" required>
+
+                <label style="display: block; margin: 15px 0 8px 0; font-weight: bold;">
+                    <i class="fas fa-laptop"></i> Jenis/Model:
+                </label>
+                <select id="jenis" required>
+                    <option value="">- Pilih Jenis/Model --</option>
+                    <option value="Laptop">💻 Laptop</option>
+                    <option value="Macbook">🍎 Macbook</option>
+                    <option value="PC">🖥️ PC</option>
+                    <option value="Printer">🖨️ Printer</option>
+                    <option value="Monitor">📺 Monitor</option>
+                    <option value="Elektronik lainnya">⚡ Elektronik lainnya</option>
+                </select>
+
+                <textarea id="keluhan" placeholder="🔧 Keluhan/Kerusakan" required></textarea>
+
+                <label style="display: block; margin: 15px 0 8px 0; font-weight: bold;">
+                    <i class="fas fa-clipboard-check"></i> Kelengkapan:
+                </label>
+                <textarea id="kelengkapan" placeholder="📦 Contoh: Laptop + Charger + Tas"></textarea>
+
+                <label style="display: block; margin: 15px 0 8px 0; font-weight: bold;">
+                    <i class="fas fa-calendar-alt"></i> Tanggal Masuk:
+                </label>
+                <input type="date" id="tanggal-masuk" required>
+                
+                <button onclick="tambahData()" class="success">
+                    <i class="fas fa-save"></i> Simpan Data Servis
+                </button>
+            </div>
+        </div>
+
+        <!-- Data Servis -->
+        <div id="data" class="tab-content hidden">
+            <div class="search-box card">
+                <input type="text" id="search" placeholder="🔍 Cari berdasarkan nama, merek, atau keluhan..."
+                       onkeyup="filterData()" style="margin: 0;">
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-list"></i> Semua Data Servisan</h3>
+                <div id="data-list">
+                    <p style="text-align: center; padding: 30px; color: #6b7280;">
+                        <i class="fas fa-inbox" style="font-size: 36px; margin-bottom: 10px; opacity: 0.5;"></i><br>
+                        Tidak ada data servis.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Invoice -->
+        <div id="invoiceModal" class="invoice-modal">
+            <div class="invoice-content">
+                <div class="invoice-company-header header">
+                    <h2><i class="fas fa-laptop-code"></i> WAZA COMPUTER</h2>
+                    <div>Jl. Jend. Sudirman Lr. Kasuari Samping Kantor KPU Pal 1</div>
+                    <div>Muara Bulian Batanghari Jambi</div>
+                    <div>📞 085184266873 / 085769875515</div>
+                    <div>📧 wazacomputerbulian@gmail.com</div>
+                </div>
+
+                <div class="invoice-header">
+                    <h3>📄 INVOICE SERVIS</h3>
+                </div>
+
+                <div class="invoice-details" id="invoiceDetails"></div>
+                
+                <div class="modal-buttons">
+                    <button onclick="generatePDF('print')" class="success">
+                        <i class="fas fa-print"></i> Print
+                    </button>
+                    <button onclick="generatePDF('download')" class="warning">
+                        <i class="fas fa-download"></i> Download PDF
+                    </button>
+                    <button onclick="closeInvoice()" class="danger">
+                        <i class="fas fa-times"></i> Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data Management
+        let dataServis = JSON.parse(localStorage.getItem('servisData')) || [];
+        let currentInvoiceData = null;
+        let currentActiveStat = null;
+
+        const warrantyOptions = [
+            'Tidak ada garansi', '1 minggu', '2 minggu', '3 minggu', '4 minggu',
+            '5 minggu', '6 minggu', '7 minggu', '8 minggu'
+        ];
+
+        // Tab Navigation
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+            document.getElementById(tabName).classList.remove('hidden');
+
+            if(tabName === 'dashboard') {
+                updateDashboard();
+                showNotifications();
+                showWarrantyNotifications();
+                document.getElementById('service-details').innerHTML = "";
+                resetActiveStat();
+            }
+            if(tabName === 'data') renderDataList();
+        }
+
+        function resetActiveStat() {
+            document.querySelectorAll('.stat-card').forEach(card => card.classList.remove('active'));
+            currentActiveStat = null;
+        }
+
+        // Update Dashboard
+        function updateDashboard() {
+            const progress = dataServis.filter(item => item.status === 'progress').length;
+            const completed = dataServis.filter(item => item.status === 'completed').length;
+            const taken = dataServis.filter(item => item.status === 'taken').length;
+
+            document.getElementById('count-progress').textContent = progress;
+            document.getElementById('count-completed').textContent = completed;
+            document.getElementById('count-taken').textContent = taken;
+        }
+
+        // Service Details
+        function showServiceDetails(status) {
+            const serviceDetails = document.getElementById('service-details');
+            const services = dataServis.filter(item => item.status === status);
+
+            resetActiveStat();
+            event.currentTarget.classList.add('active');
+            currentActiveStat = status;
+
+            if (services.length === 0) {
+                serviceDetails.innerHTML = `
+                    <div class="card">
+                        <h3><i class="fas fa-${getStatusIcon(status)}"></i> ${getStatusText(status)}</h3>
+                        <p style="text-align: center; padding: 30px; color: #6b7280;">
+                            Tidak ada data servis dengan status ${getStatusText(status).toLowerCase()}.
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            serviceDetails.innerHTML = `
+                <div class="card">
+                    <h3><i class="fas fa-${getStatusIcon(status)}"></i> ${getStatusText(status)} (${services.length} data)</h3>
+                    <div class="service-detail-content">
+                        ${services.map(item => {
+                            const daysInService = calculateDaysInService(item.tanggalMasuk);
+                            const warrantyStatus = item.status === 'taken' ? getWarrantyStatus(item) : null;
+                            const isOverdue = daysInService >= 3 && item.status === 'progress';
+                            return `
+                                <div class="service-item ${isOverdue ? 'service-item-overdue' : ''}">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                        <div>
+                                            <strong>${item.nama}</strong>
+                                            ${isOverdue ? `<span style="background: #ef4444; color: white; padding: 3px 10px; border-radius: 10px; font-size: 10px; margin-left: 6px;">
+                                                <i class="fas fa-exclamation-triangle"></i> ${daysInService} hari
+                                            </span>` : ''}
+                                            ${warrantyStatus && warrantyStatus.status !== 'none' ? 
+                                                `<span class="warranty-badge ${warrantyStatus.status === 'active' ? 'warranty-active' : 'warranty-expired'}" style="margin-left: 6px;">
+                                                    <i class="fas fa-${warrantyStatus.status === 'active' ? 'shield-alt' : 'exclamation-triangle'}"></i>
+                                                    ${warrantyStatus.text}
+                                                </span>` : ''}
+                                        </div>
+                                    </div>
+                                    <div style="color: #6b7280; font-size: 13px; margin: 4px 0;">
+                                        <i class="fas fa-phone"></i> ${item.telpon}
+                                    </div>
+                                    <div style="color: #6b7280; font-size: 13px; margin: 4px 0;">
+                                        <i class="fas fa-laptop"></i> ${item.merek} - ${item.jenis}
+                                    </div>
+                                    <div style="font-size: 13px; margin: 6px 0;">
+                                        <strong><i class="fas fa-tools"></i> Keluhan:</strong> ${item.keluhan}
+                                    </div>
+                                    ${item.kelengkapan ? `<div style="font-size: 13px; margin: 6px 0;">
+                                        <strong><i class="fas fa-clipboard-check"></i> Kelengkapan:</strong> ${item.kelengkapan}
+                                    </div>` : ''}
+                                    <div style="font-size: 11px; color: #9ca3af; margin: 6px 0;">
+                                        <i class="fas fa-calendar-alt"></i> Masuk: ${formatDate(item.tanggalMasuk)} (${daysInService} hari)
+                                    </div>
+                                    ${item.status === 'taken' && item.totalBiaya ? 
+                                        `<div style="font-size: 13px; margin: 4px 0;">
+                                            <strong><i class="fas fa-money-bill-wave"></i> Total Biaya:</strong> Rp ${item.totalBiaya.toLocaleString('id-ID')}
+                                        </div>` : ''}
+                                    ${item.status === 'taken' && item.garansi ? 
+                                        `<div style="font-size: 13px; margin: 4px 0;">
+                                            <strong><i class="fas fa-shield-alt"></i> Garansi:</strong> ${item.garansi}
+                                        </div>` : ''}
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Notifications
+        function showNotifications() {
+            const notificationArea = document.getElementById('notification-area');
+            const today = new Date();
+            const overdueServices = dataServis.filter(service => {
+                if (service.status !== 'progress') return false;
+                const masukDate = new Date(service.tanggalMasuk);
+                const diffDays = Math.ceil((today - masukDate) / (1000 * 60 * 60 * 24));
+                return diffDays >= 3;
+            });
+
+            notificationArea.innerHTML = overdueServices.length === 0 ? '' : `
+                <div class="notification">
+                    <div class="notification-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="notification-content">
+                        <div class="notification-title">Peringatan Servisan Lama</div>
+                        <div class="notification-desc">
+                            Ada ${overdueServices.length} servisan yang sudah lebih dari 3 hari belum selesai.
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showWarrantyNotifications() {
+            const warrantyArea = document.getElementById('warranty-notification-area');
+            const today = new Date();
+            const expiredWarrantyServices = dataServis.filter(service => {
+                if (service.status !== 'taken' || !service.tanggalDiambil || !service.garansi) return false;
+                if (service.garansi === 'Tidak ada garansi') return false;
+
+                const diambilDate = new Date(service.tanggalDiambil);
+                const weeks = parseInt(service.garansi);
+                const warrantyEndDate = new Date(diambilDate);
+                warrantyEndDate.setDate(diambilDate.getDate() + (weeks * 7));
+
+                return today > warrantyEndDate;
+            });
+
+            warrantyArea.innerHTML = expiredWarrantyServices.length === 0 ? '' : `
+                <div class="notification warranty">
+                    <div class="notification-icon"><i class="fas fa-exclamation-circle"></i></div>
+                    <div class="notification-content">
+                        <div class="notification-title">Masa Garansi Habis</div>
+                        <div class="notification-desc">
+                            Ada ${expiredWarrantyServices.length} servisan yang masa garansinya sudah habis.
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Render Data List
+        function renderDataList() {
+            const dataList = document.getElementById('data-list');
+
+            if(dataServis.length === 0) {
+                dataList.innerHTML = `
+                    <p style="text-align: center; padding: 30px; color: #6b7280;">
+                        <i class="fas fa-inbox" style="font-size: 36px; margin-bottom: 10px; opacity: 0.5;"></i><br>
+                        Tidak ada data servis.
+                    </p>
+                `;
+                return;
+            }
+
+            dataList.innerHTML = dataServis.map(item => {
+                const daysInService = calculateDaysInService(item.tanggalMasuk);
+                const isOverdue = daysInService >= 3 && item.status === 'progress';
+                const warrantyStatus = item.status === 'taken' ? getWarrantyStatus(item) : null;
+
+                return `
+                    <div class="service-item ${isOverdue ? 'service-item-overdue' : ''}">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div>
+                                <strong>${item.nama}</strong>
+                                ${isOverdue ? `<span style="background: #ef4444; color: white; padding: 3px 10px; border-radius: 10px; font-size: 10px; margin-left: 6px;">
+                                    <i class="fas fa-exclamation-triangle"></i> ${daysInService} hari
+                                </span>` : ''}
+                                ${warrantyStatus && warrantyStatus.status !== 'none' ? 
+                                    `<span class="warranty-badge ${warrantyStatus.status === 'active' ? 'warranty-active' : 'warranty-expired'}" style="margin-left: 6px;">
+                                        <i class="fas fa-${warrantyStatus.status === 'active' ? 'shield-alt' : 'exclamation-triangle'}"></i>
+                                        ${warrantyStatus.text}
+                                    </span>` : ''}
+                            </div>
+                            <span class="status-badge ${getStatusClass(item.status)}">
+                                <i class="fas fa-${getStatusIcon(item.status)}"></i> ${getStatusText(item.status)}
+                            </span>
+                        </div>
+                        <div style="color: #6b7280; font-size: 13px; margin: 4px 0;">
+                            <i class="fas fa-phone"></i> ${item.telpon}
+                        </div>
+                        <div style="color: #6b7280; font-size: 13px; margin: 4px 0;">
+                            <i class="fas fa-laptop"></i> ${item.merek} - ${item.jenis}
+                        </div>
+                        <div style="font-size: 13px; margin: 6px 0;">
+                            <strong><i class="fas fa-tools"></i> Keluhan:</strong> ${item.keluhan}
+                        </div>
+                        ${item.kelengkapan ? `<div style="font-size: 13px; margin: 6px 0;">
+                            <strong><i class="fas fa-clipboard-check"></i> Kelengkapan:</strong> ${item.kelengkapan}
+                        </div>` : ''}
+                        <div style="font-size: 11px; color: #9ca3af; margin: 6px 0;">
+                            <i class="fas fa-calendar-alt"></i> ${formatDate(item.tanggalMasuk)} (${daysInService} hari)
+                        </div>
+                        ${item.status === 'taken' ? 
+                            `<div style="font-size: 11px; color: #9ca3af; margin: 4px 0;">
+                                <i class="fas fa-calendar-check"></i> Diambil: ${formatDate(item.tanggalDiambil)}
+                            </div>` : ''}
+
+                        <div class="action-buttons">
+                            ${item.status === 'progress' ? 
+                                `<button class="action-btn success" onclick="ubahStatus(${item.id}, 'completed')">
+                                    <i class="fas fa-check-circle"></i> Selesai
+                                </button>` : ''}
+                            ${item.status === 'completed' ? 
+                                `<button class="action-btn danger" onclick="ubahStatus(${item.id}, 'taken')">
+                                    <i class="fas fa-hand-holding"></i> Sudah Diambil
+                                </button>` : ''}
+                            ${item.status === 'taken' ? 
+                                `<button class="action-btn warning" onclick="showInvoice(${item.id})">
+                                    <i class="fas fa-file-invoice"></i> Invoice
+                                </button>` : ''}
+                            <button class="action-btn secondary" onclick="hapusData(${item.id})">
+                                <i class="fas fa-trash"></i> Hapus
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Core Functions
+        function tambahData() {
+            const nama = document.getElementById('nama').value.trim();
+            const telpon = document.getElementById('telpon').value.trim();
+            const alamat = document.getElementById('alamat').value.trim();
+            const merek = document.getElementById('merek').value.trim();
+            const jenis = document.getElementById('jenis').value;
+            const keluhan = document.getElementById('keluhan').value.trim();
+            const kelengkapan = document.getElementById('kelengkapan').value.trim();
+            const tanggalMasuk = document.getElementById('tanggal-masuk').value;
+
+            if(!nama || !telpon || !alamat || !merek || !jenis || !keluhan) {
+                alert('❌ Harap isi semua field yang wajib!');
+                return;
+            }
+
+            const newData = {
+                id: Date.now(),
+                nama, telpon, alamat, merek, jenis, keluhan, kelengkapan, tanggalMasuk,
+                status: 'progress',
+                biayaServis: 0, biayaParts: 0, totalBiaya: 0,
+                garansi: 'Tidak ada garansi'
+            };
+
+            dataServis.push(newData);
+            localStorage.setItem('servisData', JSON.stringify(dataServis));
+
+            // Reset form
+            ['nama','telpon','alamat','merek','keluhan','kelengkapan'].forEach(id => 
+                document.getElementById(id).value = "");
+            document.getElementById('jenis').value = "";
+            document.getElementById('tanggal-masuk').value = new Date().toISOString().split('T')[0];
+
+            alert('✅ Data servis berhasil disimpan!');
+            showTab('dashboard');
+        }
+
+        function ubahStatus(id, statusBaru) {
+            if (statusBaru === 'taken') {
+                const biayaServis = prompt('Masukkan biaya servis:', '0');
+                const biayaParts = prompt('Masukkan biaya parts/sparepart:', '0');
+
+                if (biayaServis === null || biayaParts === null) return;
+
+                let garansiOptions = 'Pilih masa garansi:\n';
+                warrantyOptions.forEach((option, index) => {
+                    garansiOptions += `${index}. ${option}\n`;
+                });
+
+                const garansiIndex = prompt(garansiOptions + '\nMasukkan nomor pilihan (0-8)', '0');
+                if (garansiIndex === null) return;
+
+                const selectedGaransi = warrantyOptions[parseInt(garansiIndex)] || 'Tidak ada garansi';
+
+                dataServis = dataServis.map(item => {
+                    if(item.id === id) {
+                        return {
+                            ...item,
+                            status: statusBaru,
+                            biayaServis: parseInt(biayaServis) || 0,
+                            biayaParts: parseInt(biayaParts) || 0,
+                            totalBiaya: (parseInt(biayaServis) || 0) + (parseInt(biayaParts) || 0),
+                            tanggalDiambil: new Date().toISOString().split('T')[0],
+                            garansi: selectedGaransi
+                        };
+                    }
+                    return item;
+                });
+
+            } else {
+                dataServis = dataServis.map(item => {
+                    if(item.id === id) return {...item, status: statusBaru};
+                    return item;
+                });
+            }
+
+            localStorage.setItem('servisData', JSON.stringify(dataServis));
+            renderDataList();
+            updateDashboard();
+            if (currentActiveStat) showServiceDetails(currentActiveStat);
+            alert('✅ Status berhasil diubah!');
+        }
+
+        function hapusData(id) {
+            if(confirm('⚠️ Apakah Anda yakin ingin menghapus data ini?')) {
+                dataServis = dataServis.filter(item => item.id !== id);
+                localStorage.setItem('servisData', JSON.stringify(dataServis));
+                renderDataList();
+                updateDashboard();
+                if (currentActiveStat) showServiceDetails(currentActiveStat);
+                alert('✅ Data berhasil dihapus!');
+            }
+        }
+
+        function filterData() {
+            const searchTerm = document.getElementById('search').value.toLowerCase();
+            const filteredData = dataServis.filter(item =>
+                item.nama.toLowerCase().includes(searchTerm) ||
+                item.merek.toLowerCase().includes(searchTerm) ||
+                item.keluhan.toLowerCase().includes(searchTerm)
+            );
+
+            const dataList = document.getElementById('data-list');
+            
+            if(filteredData.length === 0) {
+                dataList.innerHTML = `
+                    <p style="text-align: center; padding: 30px; color: #6b7280;">
+                        <i class="fas fa-search" style="font-size: 36px; margin-bottom: 10px; opacity: 0.5;"></i><br>
+                        Tidak ada data yang sesuai dengan pencarian.
+                    </p>
+                `;
+                return;
+            }
+
+            dataList.innerHTML = filteredData.map(item => {
+                const daysInService = calculateDaysInService(item.tanggalMasuk);
+                const isOverdue = daysInService >= 3 && item.status === 'progress';
+                const warrantyStatus = item.status === 'taken' ? getWarrantyStatus(item) : null;
+
+                return `
+                    <div class="service-item ${isOverdue ? 'service-item-overdue' : ''}">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div>
+                                <strong>${item.nama}</strong>
+                                ${isOverdue ? `<span style="background: #ef4444; color: white; padding: 3px 10px; border-radius: 10px; font-size: 10px; margin-left: 6px;">
+                                    <i class="fas fa-exclamation-triangle"></i> ${daysInService} hari
+                                </span>` : ''}
+                                ${warrantyStatus && warrantyStatus.status !== 'none' ? 
+                                    `<span class="warranty-badge ${warrantyStatus.status === 'active' ? 'warranty-active' : 'warranty-expired'}" style="margin-left: 6px;">
+                                        <i class="fas fa-${warrantyStatus.status === 'active' ? 'shield-alt' : 'exclamation-triangle'}"></i>
+                                        ${warrantyStatus.text}
+                                    </span>` : ''}
+                            </div>
+                            <span class="status-badge ${getStatusClass(item.status)}">
+                                <i class="fas fa-${getStatusIcon(item.status)}"></i> ${getStatusText(item.status)}
+                            </span>
+                        </div>
+                        <div style="color: #6b7280; font-size: 13px; margin: 4px 0;">
+                            <i class="fas fa-phone"></i> ${item.telpon}
+                        </div>
+                        <div style="color: #6b7280; font-size: 13px; margin: 4px 0;">
+                            <i class="fas fa-laptop"></i> ${item.merek} - ${item.jenis}
+                        </div>
+                        <div style="font-size: 13px; margin: 6px 0;">
+                            <strong><i class="fas fa-tools"></i> Keluhan:</strong> ${item.keluhan}
+                        </div>
+                        ${item.kelengkapan ? `<div style="font-size: 13px; margin: 6px 0;">
+                            <strong><i class="fas fa-clipboard-check"></i> Kelengkapan:</strong> ${item.kelengkapan}
+                        </div>` : ''}
+                        <div style="font-size: 11px; color: #9ca3af; margin: 6px 0;">
+                            <i class="fas fa-calendar-alt"></i> ${formatDate(item.tanggalMasuk)} (${daysInService} hari)
+                        </div>
+                        ${item.status === 'taken' ? 
+                            `<div style="font-size: 11px; color: #9ca3af; margin: 4px 0;">
+                                <i class="fas fa-calendar-check"></i> Diambil: ${formatDate(item.tanggalDiambil)}
+                            </div>` : ''}
+
+                        <div class="action-buttons">
+                            ${item.status === 'progress' ? 
+                                `<button class="action-btn success" onclick="ubahStatus(${item.id}, 'completed')">
+                                    <i class="fas fa-check-circle"></i> Selesai
+                                </button>` : ''}
+                            ${item.status === 'completed' ? 
+                                `<button class="action-btn danger" onclick="ubahStatus(${item.id}, 'taken')">
+                                    <i class="fas fa-hand-holding"></i> Sudah Diambil
+                                </button>` : ''}
+                            ${item.status === 'taken' ? 
+                                `<button class="action-btn warning" onclick="showInvoice(${item.id})">
+                                    <i class="fas fa-file-invoice"></i> Invoice
+                                </button>` : ''}
+                            <button class="action-btn secondary" onclick="hapusData(${item.id})">
+                                <i class="fas fa-trash"></i> Hapus
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Invoice Functions
+        function showInvoice(id) {
+            const service = dataServis.find(item => item.id === id);
+            if (!service) return;
+
+            currentInvoiceData = service;
+
+            const invoiceDetails = document.getElementById('invoiceDetails');
+            invoiceDetails.innerHTML = `
+                <div class="invoice-row">
+                    <strong>No. Invoice:</strong>
+                    <span>INV-${service.id}</span>
+                </div>
+                <div class="invoice-row">
+                    <strong>Tanggal:</strong>
+                    <span>${formatDate(service.tanggalDiambil || new Date().toISOString().split('T')[0])}</span>
+                </div>
+                <div class="invoice-row">
+                    <strong>Nama Pelanggan:</strong>
+                    <span>${service.nama}</span>
+                </div>
+                <div class="invoice-row">
+                    <strong>Telepon:</strong>
+                    <span>${service.telpon}</span>
+                </div>
+                <div class="invoice-row">
+                    <strong>Alamat:</strong>
+                    <span>${service.alamat}</span>
+                </div>
+                <div class="invoice-row">
+                    <strong>Merek/Jenis:</strong>
+                    <span>${service.merek} - ${service.jenis}</span>
+                </div>
+                <div class="invoice-row">
+                    <strong>Keluhan:</strong>
+                    <span>${service.keluhan}</span>
+                </div>
+                <div class="invoice-row">
+                    <strong>Kelengkapan:</strong>
+                    <span>${service.kelengkapan || '-'}</span>
+                </div>
+                <div class="invoice-row">
+                    <strong>Biaya Servis:</strong>
+                    <span>Rp ${(service.biayaServis || 0).toLocaleString('id-ID')}</span>
+                </div>
+                <div class="invoice-row">
+                    <strong>Biaya Parts:</strong>
+                    <span>Rp ${(service.biayaParts || 0).toLocaleString('id-ID')}</span>
+                </div>
+                <div class="invoice-row">
+                    <strong>Garansi:</strong>
+                    <span>${service.garansi || 'Tidak ada garansi'}</span>
+                </div>
+                <div class="invoice-row" style="border-top: 2px solid #25d366; font-weight: bold; padding-top: 12px;">
+                    <strong>TOTAL:</strong>
+                    <span>Rp ${(service.totalBiaya || 0).toLocaleString('id-ID')}</span>
+                </div>
+            `;
+
+            document.getElementById('invoiceModal').style.display = 'flex';
+        }
+
+        function closeInvoice() {
+            document.getElementById('invoiceModal').style.display = 'none';
+        }
+
+        function generatePDF(action) {
+            if (!currentInvoiceData) return;
+
+            const service = currentInvoiceData;
+            const pdfContent = `
+                <div style="padding: 20px; font-family: Arial, sans-serif;">
+                    <div style="background: #25d366; color: white; padding: 20px; text-align: center; border-radius: 8px;">
+                        <h2>WAZA COMPUTER</h2>
+                        <div>Jl. Jend. Sudirman Lr. Kasuari Samping Kantor KPU Pal 1</div>
+                        <div>Muara Bulian Batanghari Jambi</div>
+                        <div>Telp: 085184266873 / 085769875515</div>
+                    </div>
+
+                    <div style="text-align: center; margin: 20px 0;">
+                        <h3>INVOICE SERVIS LAPTOP</h3>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <strong>No. Invoice:</strong>
+                            <span>INV-${service.id}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <strong>Tanggal:</strong>
+                            <span>${formatDate(service.tanggalDiambil || new Date().toISOString().split('T')[0])}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <strong>Nama Pelanggan:</strong>
+                            <span>${service.nama}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <strong>Telepon:</strong>
+                            <span>${service.telpon}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <strong>Alamat:</strong>
+                            <span>${service.alamat}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <strong>Merek/Jenis:</strong>
+                            <span>${service.merek} - ${service.jenis}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <strong>Keluhan:</strong>
+                            <span>${service.keluhan}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <strong>Kelengkapan:</strong>
+                            <span>${service.kelengkapan || '-'}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <strong>Biaya Servis:</strong>
+                            <span>Rp ${(service.biayaServis || 0).toLocaleString('id-ID')}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <strong>Biaya Parts:</strong>
+                            <span>Rp ${(service.biayaParts || 0).toLocaleString('id-ID')}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <strong>Garansi:</strong>
+                            <span>${service.garansi || 'Tidak ada garansi'}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; border-top: 2px solid #25d366; font-weight: bold; padding-top: 12px;">
+                            <strong>TOTAL BIAYA:</strong>
+                            <span>Rp ${(service.totalBiaya || 0).toLocaleString('id-ID')}</span>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; margin-top: 40px;">
+                        <div style="text-align: center; width: 45%;">
+                            <div style="border-top: 1px solid #333; margin: 40px 0 10px 0;"></div>
+                            <div><strong>Teknisi WAZA COMPUTER</strong></div>
+                        </div>
+                        <div style="text-align: center; width: 45%;">
+                            <div style="border-top: 1px solid #333; margin: 40px 0 10px 0;"></div>
+                            <div><strong>Pelanggan</strong></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const element = document.createElement('div');
+            element.innerHTML = pdfContent;
+            document.body.appendChild(element);
+
+            const opt = {
+                margin: 10,
+                filename: `Invoice_WAZA_COMPUTER_${service.id}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            if (action === 'download') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    document.body.removeChild(element);
+                    closeInvoice();
+                });
+            } else if (action === 'print') {
+                html2pdf().set(opt).from(element).toPdf().get('pdf').then(function(pdf) {
+                    window.open(pdf.output('bloburi'), '_blank');
+                    document.body.removeChild(element);
+                    closeInvoice();
+                });
+            }
+        }
+
+        // Helper Functions
+        function calculateDaysInService(tanggalMasuk) {
+            const today = new Date();
+            const masukDate = new Date(tanggalMasuk);
+            return Math.ceil((today - masukDate) / (1000 * 60 * 60 * 24));
+        }
+
+        function getWarrantyStatus(service) {
+            if (!service.garansi || service.garansi === 'Tidak ada garansi') {
+                return { status: 'none', text: 'Tidak ada garansi' };
+            }
+
+            const today = new Date();
+            const diambilDate = new Date(service.tanggalDiambil);
+            const weeks = parseInt(service.garansi);
+            const warrantyEndDate = new Date(diambilDate);
+            warrantyEndDate.setDate(diambilDate.getDate() + (weeks * 7));
+
+            if (today > warrantyEndDate) {
+                return { status: 'expired', text: 'Garansi habis' };
+            } else {
+                const diffDays = Math.ceil((warrantyEndDate - today) / (1000 * 60 * 60 * 24));
+                return { status: 'active', text: `Garansi ${diffDays} hari lagi` };
+            }
+        }
+
+        function getStatusClass(status) {
+            const classes = { 'progress': 'status-progress', 'completed': 'status-completed', 'taken': 'status-taken' };
+            return classes[status] || 'status-progress';
+        }
+
+        function getStatusIcon(status) {
+            const icons = { 'progress': 'tools', 'completed': 'check-circle', 'taken': 'hand-holding' };
+            return icons[status] || 'tools';
+        }
+
+        function getStatusText(status) {
+            const texts = { 'progress': 'Dalam Pengerjaan', 'completed': 'Selesai', 'taken': 'Sudah Diambil' };
+            return texts[status] || 'Dalam Pengerjaan';
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        }
+
+        // Initialize
+        document.getElementById('tanggal-masuk').value = new Date().toISOString().split('T')[0];
+        updateDashboard();
+        showNotifications();
+        showWarrantyNotifications();
+    </script>
+</body>
+</html>
