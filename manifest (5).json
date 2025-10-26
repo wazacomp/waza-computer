@@ -1,0 +1,13 @@
+{
+  "background_color": "#ffffff",
+  "description": "Aplikasi Manajemen Servis WAZA COMPUTER",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "Waza Computer",
+  "orientation": "any",
+  "scope": "/waza-computer/",
+  "short_name": "WazaComp",
+  "start_url": "/waza-computer/",
+  "theme_color": "#25d366",
+  "lang": "id"
+}
