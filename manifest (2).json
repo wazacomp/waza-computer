@@ -1,15 +1,14 @@
 {
   "name": "Waza Computer",
-  "short_name": "WazaComp",
+  "short_name": "WazaComp", 
   "description": "Aplikasi Manajemen Servis WAZA COMPUTER",
   "start_url": "/waza-computer/",
+  "scope": "/waza-computer/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#25d366",
   "orientation": "any",
-  "scope": "/waza-computer/",
   "lang": "id",
-  "dir": "ltr",
   "icons": [
     {
       "src": "icons/icon-192x192.png",
